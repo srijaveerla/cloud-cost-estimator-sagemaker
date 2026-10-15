@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.ipynb_checkpoints/
+models/*.joblib
+*.tar.gz
+.DS_Store
+# never commit credentials
+*.pem
+credentials
