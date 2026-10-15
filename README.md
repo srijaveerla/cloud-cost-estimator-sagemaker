@@ -1,56 +1,162 @@
+
 # ☁️ AI Cloud Cost Estimator (Amazon SageMaker)
 
-A machine-learning project that **predicts the monthly cloud cost of a workload** (vCPUs, RAM, GPU, storage,
-hours, data transfer, region, pricing model) and runs **on AWS SageMaker** for training and real-time inference.
+An AI and Machine Learning project that estimates monthly cloud costs based on workload resources such as vCPUs, RAM, GPU, storage, usage hours, data transfer, region, and pricing model.
 
-> Built as an internship project. Data is synthetic and prices are illustrative — swap in real AWS billing/pricing data for production use.
+The project uses a machine learning model to predict cloud expenses and demonstrates how training and real-time inference can run on AWS SageMaker.
+
+> Built as an AI/ML student project. The dataset is synthetic and prices are illustrative, so predictions are for demonstration purposes only.
+
+## Features
+
+- Estimate monthly cloud costs using workload specifications.
+- Generate a synthetic cloud workload dataset.
+- Train a Gradient Boosting machine learning model.
+- Run predictions locally without AWS.
+- Support AWS SageMaker training and real-time inference.
+- Evaluate model performance using MAE and R² metrics.
+- Clean up deployed SageMaker endpoints to help avoid unnecessary charges.
 
 ## Architecture
-```
-generate_data.py ─► cloud_workloads.csv ─► S3 ─► SageMaker Training Job (src/train.py)
-                                                       │
-                                                       ▼
-                                           model.tar.gz in S3 ─► SageMaker Endpoint (src/inference.py)
-                                                                          │
-                                                       src/estimate.py ◄──┘ (CLI client)
+
+```text
+Generate Dataset
+       |
+       v
+cloud_workloads.csv
+       |
+       v
+Train ML Model
+       |
+       v
+Local Model or AWS SageMaker
+       |
+       v
+Cloud Cost Prediction
 ```
 
-## Project structure
+## Project Structure
+
 | Path | Purpose |
 |---|---|
-| `data/generate_data.py` | Builds the synthetic workload/cost dataset |
-| `src/train.py` | Trains a Gradient Boosting pipeline (local or SageMaker) |
+| `data/generate_data.py` | Generates the synthetic workload dataset |
+| `data/cloud_workloads.csv` | Workload and cost data |
+| `src/train.py` | Trains the machine learning model |
 | `src/inference.py` | SageMaker inference handlers |
-| `src/estimate.py` | CLI to get a cost estimate (local model or endpoint) |
-| `sagemaker/launch_training.py` | Starts the training job and deploys an endpoint |
-| `sagemaker/cleanup.py` | Deletes the endpoint (avoid charges) |
-| `tests/` | Pytest tests |
+| `src/estimate.py` | Estimates costs using a local model or endpoint |
+| `sagemaker/launch_training.py` | Launches training and optionally deploys an endpoint |
+| `sagemaker/cleanup.py` | Deletes a deployed SageMaker endpoint |
+| `models/metrics.json` | Stores model evaluation metrics |
+| `tests/test_pipeline.py` | Tests the project pipeline |
+| `requirements.txt` | Python dependencies |
 
-## Quick start (local, no AWS needed)
+## Requirements
+
+- Python 3.10 or later
+- pip
+- AWS account and AWS CLI only if using SageMaker
+
+## Quick Start (Local)
+
+No AWS account is required for local model training and prediction.
+
+### 1. Clone the repository
+
 ```bash
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
+git clone https://github.com/srijaveerla/cloud-cost-estimator-sagemaker.git
+cd cloud-cost-estimator-sagemaker
+```
+
+### 2. Create and activate a virtual environment
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+macOS/Linux:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
+
+### 4. Generate data and train the model
+
+```bash
 python data/generate_data.py
 python src/train.py
+```
+
+### 5. Estimate cloud costs
+
+```bash
 python src/estimate.py --vcpus 4 --ram-gb 16 --storage-gb 200 --hours 730
+```
+
+### 6. Run tests
+
+```bash
 pytest -q
 ```
 
-## Run on AWS SageMaker
-1. `aws configure` (IAM user with SageMaker + S3 access)
-2. Create a SageMaker execution role (IAM → Roles → SageMaker) and copy its ARN
-3. Train and deploy:
+## AWS SageMaker Deployment
+
+AWS deployment may incur charges.
+
+1. Install and configure the AWS CLI.
+2. Configure AWS credentials with the necessary permissions.
+3. Create or identify an appropriate SageMaker execution role.
+4. Launch training and optionally deploy an endpoint:
+
 ```bash
-python sagemaker/launch_training.py --role arn:aws:iam::<ACCOUNT_ID>:role/<ROLE_NAME> --deploy
-python src/estimate.py --endpoint <ENDPOINT_NAME> --vcpus 8 --ram-gb 32 --pricing-model spot
+python sagemaker/launch_training.py --role YOUR_SAGEMAKER_ROLE_ARN --deploy
 ```
-4. **Delete the endpoint when finished:** `python sagemaker/cleanup.py --endpoint <ENDPOINT_NAME>`
 
-## Results
-Add your metrics here after training (MAE in USD, R²) — see `models/metrics.json`.
+5. Use the endpoint for prediction:
 
-## Future work
-Real AWS Pricing API data · Streamlit dashboard · Cost forecasting over time · Multi-cloud (Azure/GCP)
+```bash
+python src/estimate.py --endpoint YOUR_ENDPOINT_NAME --vcpus 8 --ram-gb 32 --pricing-model spot
+```
+
+6. Delete the endpoint when finished:
+
+```bash
+python sagemaker/cleanup.py --endpoint YOUR_ENDPOINT_NAME
+```
+
+Replace the example role ARN and endpoint name with your actual AWS values. Do not commit AWS credentials or secrets to GitHub.
+
+## Model Evaluation
+
+Model evaluation metrics such as Mean Absolute Error (MAE) and R² are stored in `models/metrics.json` after training, if supported by the training pipeline.
+
+Because the dataset is synthetic, results do not establish accuracy against actual AWS bills.
+
+## Future Improvements
+
+- Integrate real cloud pricing and billing data.
+- Add an interactive Streamlit dashboard.
+- Forecast cloud spending over time.
+- Recommend cost-saving configurations.
+- Explore multi-cloud support for AWS, Azure, and Google Cloud.
+
+## Technologies
+
+Python · Pandas · Scikit-learn · Machine Learning · AWS SageMaker · Pytest
+
+## Author
+
+AI & Machine Learning Student
 
 ## License
+
 MIT
